@@ -16,12 +16,7 @@ class App extends PureComponent {
 
   state = {
     src: null,
-    crop: {
-      x: 10,
-      y: 10,
-      aspect: 1,
-      height: 80
-    },
+    crop: {},
     isPrintEnabled: false,
     imageUrl: false,
   };
@@ -54,11 +49,17 @@ class App extends PureComponent {
   };
 
   onCropComplete = async (crop, pixelCrop) => {
-    const croppedImageUrl = await this.getCroppedImg(
-      this.imageRef,
-      pixelCrop,
-      "newFile.jpeg"
-    );
+    let croppedImageUrl = null
+    if (pixelCrop.width > 800 || pixelCrop.height > 100) {
+      alert("Wrong dimension. Maximum dimension is 800x100.");
+    } else {
+      croppedImageUrl = await this.getCroppedImg(
+        this.imageRef,
+        pixelCrop,
+        "newFile.jpeg"
+      );
+    }
+
     this.setState({ croppedImageUrl });
   };
 
@@ -103,38 +104,48 @@ class App extends PureComponent {
         {!imageUrl &&
           <div>
             <div>
+              <label>Please select a file to upload:</label>
+              &nbsp;
               <input type="file" onChange={this.onSelectFile} />
             </div>
 
-            {this.state.src && (
-              <ReactCrop
-                src={this.state.src}
-                crop={this.state.crop}
-                onImageLoaded={this.onImageLoaded}
-                onComplete={this.onCropComplete}
-                onChange={this.onCropChange}
-              />
+            <div>
+              {this.state.src && (
+                <ReactCrop
+                  src={this.state.src}
+                  crop={this.state.crop}
+                  onImageLoaded={this.onImageLoaded}
+                  onComplete={this.onCropComplete}
+                  onChange={this.onCropChange}
+                />
 
-            )}
-
-            {croppedImageUrl && <img alt="Crop" src={croppedImageUrl} />}
+              )}
+            </div>
 
             <div>
-              <button type="submit" onClick={ () => { this.handleSave(croppedImageUrl) }}>Save</button>
+              <h2>Preview:</h2>
+              {croppedImageUrl && <img alt="Crop" src={croppedImageUrl} />}
+            </div>
+
+
+            <div>
+              <button type="submit" class='btn' onClick={ () => { this.handleSave(croppedImageUrl) }}>Save</button>
             </div>
           </div>
         }
 
-        { isPrintEnabled && imageUrl &&
+        { imageUrl &&
           <div>
             <img alt="Preview" src={imageUrl} />
-            <div>
-              <button type='submit' onClick={ ()=> this.handlePrint(imageUrl) }>
-                Print Preview
-              </button>
-            </div>
           </div>
         }
+
+        <div>
+          <button type='submit' disabled={!isPrintEnabled} class='btn' onClick={ ()=> this.handlePrint(imageUrl) }>
+            Print Preview
+          </button>
+        </div>
+
       </div>
     );
   }
