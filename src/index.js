@@ -6,6 +6,14 @@ import "react-image-crop/dist/ReactCrop.css";
 import "./App.css";
 
 class App extends PureComponent {
+
+  constructor(props) {
+    super(props);
+
+    this.handleSave = this.handleSave.bind(this);
+    this.handlePrint= this.handlePrint.bind(this);
+  }
+
   state = {
     src: null,
     crop: {
@@ -13,8 +21,23 @@ class App extends PureComponent {
       y: 10,
       aspect: 1,
       height: 80
-    }
+    },
+    isPrintEnabled: false,
+    imageUrl: false,
   };
+
+  handleSave(imageFile) {
+    let promise = Promise.resolve("http://lorempixel.com/800/100/cats/");
+
+    promise.then((imageUrl) => {
+      this.setState({ isPrintEnabled : true, imageUrl: imageUrl});
+    });
+  }
+
+  handlePrint(imageSrc) {
+    window.print();
+    window.close();
+  }
 
   onSelectFile = e => {
     if (e.target.files && e.target.files.length > 0) {
@@ -72,23 +95,46 @@ class App extends PureComponent {
   }
 
   render() {
-    const { croppedImageUrl } = this.state;
+    const { croppedImageUrl, imageUrl, isPrintEnabled } = this.state;
 
     return (
       <div className="App">
-        <div>
-          <input type="file" onChange={this.onSelectFile} />
-        </div>
-        {this.state.src && (
-          <ReactCrop
-            src={this.state.src}
-            crop={this.state.crop}
-            onImageLoaded={this.onImageLoaded}
-            onComplete={this.onCropComplete}
-            onChange={this.onCropChange}
-          />
-        )}
-        {croppedImageUrl && <img alt="Crop" src={croppedImageUrl} />}
+
+        {!imageUrl &&
+          <div>
+            <div>
+              <input type="file" onChange={this.onSelectFile} />
+            </div>
+
+            {this.state.src && (
+              <ReactCrop
+                src={this.state.src}
+                crop={this.state.crop}
+                onImageLoaded={this.onImageLoaded}
+                onComplete={this.onCropComplete}
+                onChange={this.onCropChange}
+              />
+
+            )}
+
+            {croppedImageUrl && <img alt="Crop" src={croppedImageUrl} />}
+
+            <div>
+              <button type="submit" onClick={ () => { this.handleSave(croppedImageUrl) }}>Save</button>
+            </div>
+          </div>
+        }
+
+        { isPrintEnabled && imageUrl &&
+          <div>
+            <img alt="Preview" src={imageUrl} />
+            <div>
+              <button type='submit' onClick={ ()=> this.handlePrint(imageUrl) }>
+                Print Preview
+              </button>
+            </div>
+          </div>
+        }
       </div>
     );
   }
